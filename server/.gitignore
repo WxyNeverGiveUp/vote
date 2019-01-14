@@ -1,0 +1,6 @@
+*.tar.gz
+*.tar
+data/
+dist/
+doc/
+node_modules/

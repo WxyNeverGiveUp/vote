@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>员工大会奇葩说投票后台</title>
+    <style>
+        h1 {
+            text-align: center;
+        }
+        p {
+            font-weight: 800;
+            text-align: center;
+        }
+        .page {
+            margin: 0 auto;
+            width: 1200px;
+        }
+        .operation {
+            text-align: center;
+        }
+        span {
+            margin: 0 30px;
+            color: red;
+            font-size: 24px;
+        }
+        button {
+            margin: 0 50px;
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <h1>员工大会奇葩说投票后台</h1>
+        <p>
+            总投票数: <span id="totalCounter">0</span>
+        </p>
+        <p>
+            正方投票数: <span id="positiveVote">0</span>
+            正方跑票数: <span id="positiveRun">0</span>
+        </p>
+        <p>
+            反方投票数：<span id="negativeVote">0</span>
+            反方跑票数: <span id="negativeRun">0</span>
+        </p>
+        <div class="operation">
+            <button type="button" id="resetVote">重置投票</button>
+            <button type="button" id="resetRun">重置跑票</button>
+        </div>
+    </div>
+    
+    <script src="https://unpkg.com/flyio/dist/fly.min.js"></script>
+    <script>
+		const requestUrl = 'http://127.0.0.1:3000/test'		
+        const resetRun = document.getElementById('resetRun'),
+            resetVote = document.getElementById('resetVote'),
+            totalCounter = document.getElementById('totalCounter'),
+            positiveVote = document.getElementById('positiveVote'),
+            positiveRun = document.getElementById('positiveRun'),
+            negativeVote = document.getElementById('negativeVote'),
+            negativeRun = document.getElementById('negativeRun')
+
+        const fly = new Fly()
+        function getTotalVote() {
+            fly.get(`${requestUrl}/vote/get_total_counter`)
+                .then(function (response) {
+                    const res = response.data
+                    console.log(`总票数：${JSON.stringify(res)}`, res)
+                    totalCounter.textContent = res.data.total_vote
+                    positiveVote.textContent = res.data.positive_vote_counter
+                    positiveRun.textContent = res.data.positive_run_counter
+                    negativeVote.textContent = res.data.negative_vote_counter
+                    negativeRun.textContent = res.data.negative_run_counter
+                })
+                .catch(function (error) {
+                    console.log(error)
+                })
+        }
+
+        // 重置跑票
+        resetRun.onclick = () => {
+            let msg = '你确定要重置跑票数吗？重置后不可恢复！'
+            if (confirm(msg) === true) {
+                fly.get(`${requestUrl}/vote/clear_run_ticket`)
+                .then(function (response) {
+                    console.log(`清除跑票：${JSON.stringify(response.data)}`, response.data)
+                    getTotalVote()
+                })
+                .catch(function (error) {
+                    console.log(error)
+                })
+            }
+        }
+
+        // 重置投票
+        resetVote.onclick = () => {
+            let msg = '你确定要重置投票数吗？重置后不可恢复！'
+            if (confirm(msg) === true) {
+                fly.get(`${requestUrl}/vote/clear_vote`)
+                .then(function (response) {
+                    console.log(`清除投票：${JSON.stringify(response.data)}`, response.data)
+                    getTotalVote()
+                })
+                .catch(function (error) {
+                    console.log(error)
+                }) 
+            }
+        }
+        
+
+        setInterval(() => {
+            getTotalVote()
+        }, 1000)
+    </script>
+</body>
+</html>

@@ -1,0 +1,98 @@
+@import './base.less';
+
+html, body {
+    width: 100%;
+    height: 100%;
+    background-color: #2a1c73;
+}
+
+.page {
+    position: relative;
+    height: 100%;
+    background: url('../img/vote_bg.jpg') no-repeat center center fixed;
+    background-image: url('../img/vote_bg.jpg');
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
+    background-color: #2a1c73;
+    background-attachment: fixed;
+}
+
+.operation-box{
+    position: absolute;
+    top: 70%;
+    width: 100%;
+    height: 5rem;
+    text-align: center;
+    > div {
+        display: inline-block;
+        width: 45%;
+        height: 100%;
+        text-align: center;
+        span {
+            display: inline-block;
+            width: 4rem;
+            height: 1.3rem;
+        }
+        #vote2positive{
+            background: url('../img/positive.png');
+            background-size: 100% 100%;
+        }
+        #vote2negative{
+            background: url('../img/negative.png');
+            background-size: 100% 100%;
+        }
+    }
+}
+
+.dialog {
+    z-index: 1002;
+    display: none;
+    height: 3.2rem;
+    width: 7rem;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    -moz-transform: translate(-50%, -50%);
+    -ms-transform: translate(-50%, -50%);
+    -webkit-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+    border: .05rem #000 solid;
+    font-weight: 700;
+    color: #000;
+    background-color: #fff;
+    border-radius: 0.2rem 0.2rem 0 0;
+    p {
+        padding: .5rem 0;
+        font-size: 0.5rem; 
+        text-align: center;
+    }
+    button {
+        display: block;
+        width: 100%;
+        height: 1rem;
+        margin: 0 auto;
+        border: 0;
+        border-radius: .7rem;
+        background-color: #fff;
+        color: #3560A1;
+        font-size: .5rem;
+    }
+    .dialog-operation {
+        border-top: 1px solid #000; 
+    }
+}
+
+.black-overlay{
+    z-index: 1001;
+    display: none;
+    position: fixed;
+    top: 0%;
+    left: 0%;
+    width: 100%;
+    height: 100%;
+    background-color: rgb(65, 63, 63);
+    -moz-opacity: 0.8;
+    opacity:.80;
+    filter: alpha(opacity=80);
+}

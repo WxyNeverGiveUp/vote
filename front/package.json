@@ -1,0 +1,16 @@
+{
+    "name": "vote-front",
+    "version": "0.1.0",
+    "private": true,
+    "scripts": {
+        "start": "webpack"
+    },
+    "dependencies": {
+        "@types/node": "^10.12.18"
+    },
+    "devDependencies": {
+        "babel-loader": "^8.0.5",
+        "file-loader": "^3.0.1",
+        "style-loader": "^0.23.1"
+    }
+}

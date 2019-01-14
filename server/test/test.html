@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        span {
+            color: red;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <button type="button" id="auth">登录</button>
+        <button type="button" id="vote2positive">给正方投票</button>
+        <button type="button" id="vote2negative">给反方投票</button>
+        <button type="button" id="reset">重置</button>
+        <button type="button" id="getTotal">获取全部票数</button>
+        <button type="button" id="stop">停止</button>
+        <button type="button" id="begin">开始</button>
+        <p>
+            总投票数: <span id="totalCounter">0</span>
+        </p>
+        <p>
+            正方投票数: <span id="positiveVote">0</span>
+        </p>
+        <p>
+            反方投票数：<span id="negativeVote">0</span>
+        </p>
+        <p>
+            正方跑票数: <span id="positiveRun">0</span>
+        </p>
+        <p>
+            反方跑票数: <span id="negativeRun">0</span>
+        </p>
+    </div>
+    <script src="https://unpkg.com/flyio/dist/fly.min.js"></script>
+    <script>
+        /**
+         * 读cookie
+         */
+         function getCookie(name){ 
+            let arr,
+                reg = new RegExp("(^| )"+name+"=([^;]*)(;|$)")
+            if(arr = document.cookie.match(reg)) {
+                return unescape(arr[2])
+            } else {
+                return null
+            }
+        }
+
+        /**
+         * 写cookie
+         */
+        function setCookie(name, value) { 
+            let Days = 30
+            document.cookie = name + "=" + escape(value)
+            console.log('登录 设置了cookie', getCookie(name))
+        }
+
+        /**
+         * 删cookie
+         */
+        function delCookie(name) { 
+            let exp = new Date()
+            exp.setTime(exp.getTime() - 1)
+            let cVal = getCookie(name)
+            if(cVal != null) {
+                document.cookie = name + "=" + cVal +";expires="+exp.toGMTString()
+            }
+        }
+
+        const cookieName = 'strange_talk_id'
+        const getTotal = document.getElementById('getTotal'),
+            reset = document.getElementById('reset'),
+            auth = document.getElementById('auth'),
+            vote2positive = document.getElementById('vote2positive'),
+            vote2negative = document.getElementById('vote2negative'),
+            totalCounter = document.getElementById('totalCounter'),
+            positiveVote = document.getElementById('positiveVote'),
+            positiveRun = document.getElementById('positiveRun'),
+            negativeVote = document.getElementById('negativeVote'),
+            negativeRun = document.getElementById('negativeRun'),
+            stop = document.getElementById('stop'),
+            begin = document.getElementById('begin')
+
+        const fly = new Fly()
+        function getTotalVote() {
+            fly.get('http://127.0.0.1:3000/test/vote/get_total_counter')
+                .then(function (response) {
+                    const res = response.data
+                    console.log(`总票数：${JSON.stringify(res)}`, res)
+                    totalCounter.textContent = res.data.total_vote
+                    positiveVote.textContent = res.data.positive_vote_counter
+                    positiveRun.textContent = res.data.positive_run_counter
+                    negativeVote.textContent = res.data.negative_vote_counter
+                    negativeRun.textContent = res.data.negative_run_counter
+                })
+                .catch(function (error) {
+                    console.log(error)
+            })
+        }
+
+        // 获取总票数
+        getTotal.onclick = () => { 
+            getTotalVote()
+        }
+        // 重置数据
+        reset.onclick = () => {
+            fly.get('http://127.0.0.1:3000/test/vote/clear_run_ticket')
+                .then(function (response) {
+                    console.log(`清除跑票：${JSON.stringify(response.data)}`, response.data)
+                })
+                .catch(function (error) {
+                    console.log(error)
+            })
+
+            fly.get('http://127.0.0.1:3000/test/vote/clear_vote')
+                .then(function (response) {
+                    console.log(`清除投票：${JSON.stringify(response.data)}`, response.data)
+                })
+                .catch(function (error) {
+                    console.log(error)
+            })  
+
+            fly.get('http://127.0.0.1:3000/test/vote/clear_id')
+                .then(function (response) {
+                    console.log(`清除Id：${JSON.stringify(response.data)}`, response.data)
+                })
+                .catch(function (error) {
+                    console.log(error)
+            }) 
+            delCookie(cookieName)
+            totalCounter.textContent = 0
+            positiveVote.textContent = 0
+            positiveRun.textContent = 0
+            negativeVote.textContent = 0
+            negativeRun.textContent = 0
+        }
+        // 登录
+        auth.onclick = () => {
+            const id = getCookie(cookieName)
+            console.log('登录 读到的id为', id)
+            fly.post('http://127.0.0.1:3000/test/login/auth', {
+                id
+            })
+            .then(function (response) {
+                const res = response.data
+                console.log(`登录：id: ${id},  ${JSON.stringify(res)}`, res, res.data.id)
+                if (!id) {
+                    console.log('登录 设置的了cookie id', res.data.id, '当前cookie ==>', document.cookie)
+                    setCookie(cookieName, res.data.id)
+                }
+                getTotalVote()
+            })
+            .catch(function (error) {
+                console.log(error)
+            })
+        }
+        
+        // 给正方投票
+        vote2positive.onclick = () => {
+            const id = getCookie(cookieName)
+            fly.post('http://127.0.0.1:3000/test/vote/vote2positive', {
+                id
+            })
+            .then(function (response) {
+                console.log(`id==>【${id}】给正方投票：${JSON.stringify(response.data)}`, response.data)
+                getTotalVote()
+            })
+            .catch(function (error) {
+                console.log(error)
+            })
+        }
+        // 给反方投票
+        vote2negative.onclick = () => {
+            const id = getCookie(cookieName)
+            fly.post('http://127.0.0.1:3000/test/vote/vote2negative', {
+                id
+            })
+            .then(function (response) {
+                console.log(`id==>【${id}】给反方投票：${JSON.stringify(response.data)}`, response.data)
+                getTotalVote()
+            })
+            .catch(function (error) {
+                console.log(error)
+            })
+        }
+
+        setInterval(() => {
+            getTotalVote()
+        }, 1000)
+
+        let test_id = 1,
+            test_id2 = 1,
+            positive_arr = [],
+            negative_arr = [],
+            timer
+
+        /**
+         * 暂停
+         */
+        stop.onclick = () => {
+            clearInterval(timer)            
+        }
+
+        begin.onclick = () => {
+            timer = setInterval(() => {
+                const random = 0.3,
+                    begin_random = 0.5
+                if (test_id < 100) {
+                    if (Math.random() > begin_random) {
+                        fly.post('http://127.0.0.1:3000/test/vote/vote2positive', {
+                            'id': test_id
+                        })
+                        .then(function (response) {
+                            console.log(`id==>【${test_id}】给正方投票：${JSON.stringify(response.data)}`, response.data)
+                            test_id++
+                            getTotalVote()
+                        })
+                        .catch(function (error) {
+                            console.log(error)
+                        })
+                        positive_arr.push(test_id)
+                    } else {
+                        fly.post('http://127.0.0.1:3000/test/vote/vote2negative', {
+                            'id': test_id
+                        })
+                        .then(function (response) {
+                            console.log(`id==>【${test_id}】给反方投票：${JSON.stringify(response.data)}`, response.data)
+                            test_id++
+                            getTotalVote()
+                        })
+                        .catch(function (error) {
+                            console.log(error)
+                        })
+                        negative_arr.push(test_id)
+                    }
+                    
+                    /**
+                     * 跑票逻辑
+                     */
+                    setTimeout(() => {
+                        if (Math.random() > random) {
+                            fly.post('http://127.0.0.1:3000/test/vote/vote2negative', {
+                                id: test_id2
+                            })
+                            .then(function (response) {
+                                console.log(`id==>【${test_id2}】给反方投票：${JSON.stringify(response.data)}`, response.data)
+                                test_id2++
+                                getTotalVote()
+                            })
+                            .catch(function (error) {
+                                console.log(error)
+                            })
+                        } else {
+                            fly.post('http://127.0.0.1:3000/test/vote/vote2positive', {
+                                id: test_id2
+                            })
+                            .then(function (response) {
+                                console.log(`id==>【${test_id2}】给正方投票：${JSON.stringify(response.data)}`, response.data)
+                                test_id2++
+                                getTotalVote()
+                            })
+                            .catch(function (error) {
+                                console.log(error)
+                            })
+                        }
+                    }, 1000)
+                } else {
+                    clearInterval(timer)
+                    console.log('开局正方投票人数：', positive_arr.length)
+                    console.log('开局反方投票人数：', negative_arr.length)
+                }
+            }, 500)
+        }
+       
+    </script>
+</body>
+</html>

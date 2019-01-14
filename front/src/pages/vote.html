@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+	<meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width" />
+	<meta name="flexible" content="initial-dpr=2" />
+	<title>投票页面</title>
+	<script src="http://g.tbcdn.cn/mtb/lib-flexible/0.3.4/??flexible_css.js,flexible.js"></script>
+    <link rel="stylesheet" href="../resources/style/vote.css">
+</head>
+<body>
+    <div class="page">
+		<div class="operation-box">
+			<div>
+				<span id="vote2positive"></span>	
+			</div>
+			<div>
+				<span id="vote2negative"></span>
+			</div>
+		</div>
+		<div class="black-overlay"></div>
+		<div class="dialog">
+			<p class="msg"></p>
+			<div class="dialog-operation">
+				<button type="button" class="confirm-btn">确定</button>
+			</div>
+		</div>
+	</div>
+	<script src="https://unpkg.com/flyio/dist/fly.min.js"></script>
+	<script>
+		const requestUrl = 'http://127.0.0.1:3000/test'
+        /**
+         * 读cookie
+         */
+         function getCookie(name){ 
+            let arr,
+                reg = new RegExp("(^| )"+name+"=([^;]*)(;|$)")
+            if(arr = document.cookie.match(reg)) {
+                return unescape(arr[2])
+            } else {
+                return null
+            }
+        }
+
+        /**
+         * 写cookie
+         */
+        function setCookie(name, value) { 
+            let Days = 30
+            document.cookie = name + "=" + escape(value)
+            console.log('登录 设置了cookie', getCookie(name))
+        }
+
+        /**
+         * 删cookie
+         */
+        function delCookie(name) { 
+            let exp = new Date()
+            exp.setTime(exp.getTime() - 1)
+            let cVal = getCookie(name)
+            if(cVal != null) {
+                document.cookie = name + "=" + cVal +";expires="+exp.toGMTString()
+            }
+        }
+
+        const cookieName = 'strange_talk_id'
+        const vote2positive = document.getElementById('vote2positive'),
+			vote2negative = document.getElementById('vote2negative'),
+			dialog = document.querySelector('.dialog'),
+			msg = document.querySelector('.msg'),
+			confirmBtn = document.querySelector('.confirm-btn'),
+			blackOverlay = document.querySelector('.black-overlay')
+
+        const fly = new Fly()
+        
+        // 给正方投票
+        vote2positive.onclick = function() {
+            const id = getCookie(cookieName)
+            fly.get(`${requestUrl}/vote/vote2positive?id=${id}`)
+            .then(function (response) {
+				console.log(`id==>【${id}】给正方投票：${JSON.stringify(response.data)}`, response.data)
+				dialog.style.display = 'block'
+				blackOverlay.style.display = 'block'
+				msg.textContent = '你成功将票投给了正方'
+            })
+            .catch(function (error) {
+                console.log(error)
+            })
+        }
+        // 给反方投票
+        vote2negative.onclick = function() {
+            const id = getCookie(cookieName)
+            fly.get(`${requestUrl}/vote/vote2negative?id=${id}`)
+            .then(function (response) {
+				console.log(`id==>【${id}】给反方投票：${JSON.stringify(response.data)}`, response.data)
+				dialog.style.display = 'block'
+				blackOverlay.style.display = 'block'
+				msg.textContent = '你成功将票投给了反方'				
+            })
+            .catch(function (error) {
+                console.log(error)
+            })
+		}
+		
+		// 自动登录
+		window.onload = function () {
+			const id = getCookie(cookieName)
+            console.log('登录 读到的id为', id)
+            fly.get(`${requestUrl}/login/auth?id=${id}`)
+            .then(function (response) {
+                const res = response.data
+                console.log(`登录：id: ${id},  ${JSON.stringify(res)}`, res, res.data.id)
+                if (!id) {
+                    console.log('登录 设置的了cookie id', res.data.id, '当前cookie ==>', document.cookie)
+                    setCookie(cookieName, res.data.id)
+                }
+            })
+            .catch(function (error) {
+                console.log(error)
+            }) 
+		}
+		
+		confirmBtn.onclick = function() {
+			dialog.style.display = 'none'
+			blackOverlay.style.display = 'none'
+		}
+       
+    </script>
+</body>
+</html>

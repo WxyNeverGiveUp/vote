@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>投票统计页面</title>
+    <link rel="stylesheet" href="../resources/style/vote_counter.css">
+</head>
+<body>
+    <div class="web_">
+        <div class="content">
+            <!-- <p>
+                正方跑票数: <span id="positiveRun">0</span>
+            </p>
+            <p>
+                反方跑票数: <span id="negativeRun">0</span>
+            </p> -->
+            <div class="run-ticket cf">
+                <span id="positiveRun" class="run">0</span>
+                <h2>
+                    跑票数
+                </h2>
+                <span id="negativeRun" class="run">0</span>
+            </div>
+            <div class="progress-wrapper cf">
+                <span id="positiveVote">0</span>
+                <span id="negativeVote">0</span>
+                <div class="white"></div>
+                <div class="progress">
+                        <div class="loader-container"></div>
+                </div>   
+            </div>
+            <div class="desc cf">
+                <span class="positive-desc">正方</span>
+                <span id="totalCounter">0</span>
+                <span class="negative-desc">反方</span>
+            </div>                
+        </div>
+        
+        
+    </div>
+    <script src="https://unpkg.com/flyio/dist/fly.min.js"></script>
+    <script>
+		const requestUrl = 'http://127.0.0.1:3000/test'
+        const totalCounter = document.getElementById('totalCounter'),
+            positiveVote = document.getElementById('positiveVote'),
+            positiveRun = document.getElementById('positiveRun'),
+            negativeVote = document.getElementById('negativeVote'),
+            negativeRun = document.getElementById('negativeRun')
+
+        const fly = new Fly()
+        function getTotalVote() {
+            fly.get(`${requestUrl}/vote/get_total_counter`)
+                .then(function (response) {
+                    const res = response.data
+                    console.log(`总票数：${JSON.stringify(res)}`, res)
+                    totalCounter.textContent = res.data.total_vote
+                    positiveVote.textContent = res.data.positive_vote_counter
+                    positiveRun.textContent = res.data.positive_run_counter > 0 ? `+${res.data.positive_run_counter}` : res.data.positive_run_counter
+                    negativeVote.textContent = res.data.negative_vote_counter
+                    negativeRun.textContent = res.data.negative_run_counter > 0 ? `+${res.data.negative_run_counter}` : res.data.negative_run_counter
+
+                    /**
+                     * 变换进度条
+                     */
+                    let percent
+                    if (res.data.positive_vote_counter === 0 || res.data.total_vote === 0) {
+                        if (res.data.total_vote === 0 ) {
+                            percent = 0.5
+                        } 
+                        if (res.data.positive_vote_counter === 0 && res.data.total_vote !== 0) {
+                            percent = 0
+                        }
+                    } else {
+                        percent = res.data.positive_vote_counter / res.data.total_vote
+                    }
+                    // if (percent === 1) {
+                    //     document.querySelector(".loader-container").style.borderRadius= `35px 35px 35px 35px`
+                    // }
+                    document.querySelector(".loader-container").style.width= `${percent * 100}%`
+                })
+                .catch(function (error) {
+                    console.log(error)
+                })
+        }
+        setInterval(() => {
+            getTotalVote()
+        }, 1000)
+    </script>
+</body>
+</html>
